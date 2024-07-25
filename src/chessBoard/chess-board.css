@@ -1,0 +1,13 @@
+.chess_board {
+  min-width: 800px;
+  min-height: 800px;
+  display: grid;
+  grid-template-columns: repeat(8, 1fr);
+  grid-template-rows: repeat(8, 1fr);
+}
+
+.chess_board div {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
