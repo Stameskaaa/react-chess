@@ -7,7 +7,11 @@
 }
 
 .active_field {
-  background-color: red;
+  background-color: transparent;
+}
+
+div .check {
+  background-color: rgba(255, 0, 0, 0.603);
 }
 
 .active_field::after {

@@ -1,4 +1,3 @@
-import React, { useEffect, useState } from 'react';
 import './gameinfo.css';
 import { useSelector } from 'react-redux';
 import {
@@ -9,7 +8,7 @@ import {
   FaChessKnight,
 } from 'react-icons/fa';
 export const GameInfo = () => {
-  const { turn, deletedFigures } = useSelector((state) => state.game);
+  const { turn, deletedFigures, checkState } = useSelector((state) => state.game);
   const getFigureComponent = (figure, side, index) => {
     const figureClass = side === 'White' ? 'mini_chess white' : 'mini_chess black';
 
@@ -44,6 +43,9 @@ export const GameInfo = () => {
         </div>
       ) : null}
       <div className="container_turn">{turn === 'White' ? 'Ход белых' : 'Ход черных'}</div>
+      {/* {checkState.state && (
+        <div style={{ color: 'white' }}>Шах {checkState.side === 'Black' ? 'Черным' : 'Белым'}</div>
+      )} */}
     </>
   );
 };

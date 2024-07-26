@@ -1,4 +1,3 @@
-import React, { useEffect, useState } from 'react';
 import './chess-piece.css';
 export const ChessPiece = ({
   handleDropOver,

@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import './chess-cage.css';
 import {
   FaChessRook,
@@ -9,51 +9,67 @@ import {
 } from 'react-icons/fa';
 import { GiChessKing } from 'react-icons/gi';
 import { ChessPiece } from '../chessPiece/ChessPiece';
-import { useDispatch } from 'react-redux';
-import { addDeletedFigures, changeCheckState, changeTurn } from '../../redux/slice';
+import { useDispatch, useSelector } from 'react-redux';
+import {
+  addDeletedFigures,
+  changeCheckState,
+  changeTurn,
+  setGameState,
+  clearGame,
+} from '../../redux/slice';
+import ModalComponent from '../../endGame/EndGame';
+
+const kingFigure = {
+  black: <FaChessQueen side="Black" data="Queen" className="chess_piece color_black_site " />,
+  white: <FaChessQueen side="White" data="Queen" className="chess_piece color_white_site " />,
+};
+
+const startFieldArray = [
+  // 1st row - White pieces
+  <FaChessRook side="White" data="Castle" className="chess_piece color_white_site " />,
+  <FaChessKnight side="White" data="Horse" className="chess_piece color_white_site " />,
+  <FaChessBishop side="White" data="Bishop" className="chess_piece color_white_site " />,
+  <FaChessQueen side="White" data="Queen" className="chess_piece color_white_site " />,
+  <GiChessKing side="White" data="King" className="chess_piece color_white_site " />,
+  <FaChessBishop side="White" data="Bishop" className="chess_piece color_white_site " />,
+  <FaChessKnight side="White" data="Horse" className="chess_piece color_white_site " />,
+  <FaChessRook side="White" data="Castle" className="chess_piece color_white_site " />,
+  // 2nd row - White pawns
+  ...Array(8)
+    .fill(null)
+    .map((_, index) => (
+      <FaChessPawn side="White" data="Pawn" className="chess_piece color_white_site " />
+    )),
+  ...Array(32)
+    .fill(null)
+    .map((_, index) => <div data={`Empty`} className="empty_square" />),
+  // 7th row - Black pawns
+  ...Array(8)
+    .fill(null)
+    .map((_, index) => (
+      <FaChessPawn side="Black" data="Pawn" className="chess_piece color_black_site " />
+    )),
+  // 8th row - Black pieces
+  <FaChessRook side="Black" data="Castle" className="chess_piece  color_black_site  " />,
+  <FaChessKnight side="Black" data="Horse" className="chess_piece  color_black_site  " />,
+  <FaChessBishop side="Black" data="Bishop" className="chess_piece  color_black_site  " />,
+  <FaChessQueen side="Black" data="Queen" className="chess_piece  color_black_site  " />,
+  <GiChessKing side="Black" data="King" className="chess_piece  color_black_site  " />,
+  <FaChessBishop side="Black" data="Bishop" className="chess_piece  color_black_site  " />,
+  <FaChessKnight side="Black" data="Horse" className="chess_piece  color_black_site  " />,
+  <FaChessRook side="Black" data="Castle" className="chess_piece  color_black_site  " />,
+];
 
 export const ChessCage = ({ chessBoardRef }) => {
-  const [arrayOfPieces, setArrayOfPieces] = useState([
-    // 1st row - White pieces
-    <FaChessRook side="White" data="Castle" className="chess_piece color_white_site " />,
-    <FaChessKnight side="White" data="Horse" className="chess_piece color_white_site " />,
-    <FaChessBishop side="White" data="Bishop" className="chess_piece color_white_site " />,
-    <FaChessQueen side="White" data="Queen" className="chess_piece color_white_site " />,
-    <GiChessKing side="White" data="King" className="chess_piece color_white_site " />,
-    <FaChessBishop side="White" data="Bishop" className="chess_piece color_white_site " />,
-    <FaChessKnight side="White" data="Horse" className="chess_piece color_white_site " />,
-    <FaChessRook side="White" data="Castle" className="chess_piece color_white_site " />,
-    // 2nd row - White pawns
-    ...Array(8)
-      .fill(null)
-      .map((_, index) => (
-        <FaChessPawn side="White" data="Pawn" className="chess_piece color_white_site " />
-      )),
-    ...Array(32)
-      .fill(null)
-      .map((_, index) => <div data={`Empty`} className="empty_square" />),
-    // 7th row - Black pawns
-    ...Array(8)
-      .fill(null)
-      .map((_, index) => (
-        <FaChessPawn side="Black" data="Pawn" className="chess_piece color_black_site " />
-      )),
-    // 8th row - Black pieces
-    <FaChessRook side="Black" data="Castle" className="chess_piece  color_black_site  " />,
-    <FaChessKnight side="Black" data="Horse" className="chess_piece  color_black_site  " />,
-    <FaChessBishop side="Black" data="Bishop" className="chess_piece  color_black_site  " />,
-    <FaChessQueen side="Black" data="Queen" className="chess_piece  color_black_site  " />,
-    <GiChessKing side="Black" data="King" className="chess_piece  color_black_site  " />,
-    <FaChessBishop side="Black" data="Bishop" className="chess_piece  color_black_site  " />,
-    <FaChessKnight side="Black" data="Horse" className="chess_piece  color_black_site  " />,
-    <FaChessRook side="Black" data="Castle" className="chess_piece  color_black_site  " />,
-  ]);
+  const [arrayOfPieces, setArrayOfPieces] = useState(startFieldArray);
   const [activePiece, setActivePiece] = useState(null);
   const [indexToTranslate, setIndexToTranslate] = useState(null);
   const [activeFieldsToMove, setActiveFieldsToMove] = useState([]);
   const [turn, setTurn] = useState('White');
   const [hideField, setHideField] = useState(false);
-  const dragRef = useRef(null);
+  const { checkState, gameEnded } = useSelector((state) => state.game);
+  const [testFlag, setTestFlag] = useState(true);
+
   const dispatch = useDispatch();
 
   useEffect(() => {
@@ -328,11 +344,7 @@ export const ChessCage = ({ chessBoardRef }) => {
       })
       .filter((v) => v);
     return dangerousFigures;
-  };
-
-  useEffect(() => {
-    //
-  }, []);
+  }; //предотвращение шаха
 
   const hideActiveFields = () => {
     setActiveFieldsToMove([]);
@@ -368,9 +380,75 @@ export const ChessCage = ({ chessBoardRef }) => {
     }
   };
 
+  const isKingInCheck = (board) => {
+    const whiteKingPosition = board.findIndex(
+      (piece) => piece.props.data === 'King' && piece.props.side === 'White',
+    );
+    const blackKingPosition = board.findIndex(
+      (piece) => piece.props.data === 'King' && piece.props.side === 'Black',
+    );
+
+    const getPossibleMoves = (piece, index) => {
+      return showActiveFields(
+        { pieceData: piece.props.data, side: piece.props.side, indexFrom: index },
+        board,
+      );
+    };
+
+    const isWhiteKingInCheck = board
+      .map((piece, index) => ({ piece, index }))
+      .filter(({ piece }) => piece.props.side === 'Black' && piece.props.side !== undefined)
+      .some(({ piece, index }) => {
+        const possibleMoves = getPossibleMoves(piece, index);
+        return possibleMoves.includes(whiteKingPosition);
+      });
+
+    if (isWhiteKingInCheck) return { side: 'White', index: whiteKingPosition };
+
+    const isBlackKingInCheck = board
+      .map((piece, index) => ({ piece, index }))
+      .filter(({ piece }) => piece.props.side === 'White' && piece.props.side !== undefined)
+      .some(({ piece, index }) => {
+        const possibleMoves = getPossibleMoves(piece, index);
+        return possibleMoves.includes(blackKingPosition);
+      });
+
+    if (isBlackKingInCheck) return { side: 'Black', index: blackKingPosition };
+
+    return null;
+  };
+
+  const isCheckmate = (board, kingSide) => {
+    const kingIndex = board.findIndex(
+      (piece) => piece.props.data === 'King' && piece.props.side === kingSide,
+    );
+
+    const allPieces = board
+      .map((piece, index) => ({ piece, index }))
+      .filter(({ piece }) => piece.props.side === kingSide);
+
+    for (let { piece, index } of allPieces) {
+      const possibleMoves = showActiveFields(
+        { pieceData: piece.props.data, side: piece.props.side, indexFrom: index },
+        board,
+      );
+
+      for (let move of possibleMoves) {
+        const newBoard = [...board];
+        newBoard[index] = <div data={`Empty`} className="empty_square" />;
+        newBoard[move] = piece;
+
+        if (!isKingInCheck(newBoard, kingIndex)) {
+          return { status: false };
+        }
+      }
+    }
+
+    return { status: true, side: kingSide };
+  };
+
   const translatePiece = (handleClickIndex) => {
     const currentIndex = typeof handleClickIndex === 'number' ? handleClickIndex : indexToTranslate;
-    let isDeletedFigure = false;
     if (
       typeof currentIndex === 'number' &&
       activePiece &&
@@ -379,6 +457,15 @@ export const ChessCage = ({ chessBoardRef }) => {
       if (turn === activePiece?.side) {
         const changedArray = arrayOfPieces.map((piece, index) => {
           if (index === currentIndex) {
+            // Проверяем, достигла ли пешка конца доски
+            if (
+              activePiece.pieceJSX.props.data === 'Pawn' &&
+              ((activePiece.side === 'White' && currentIndex >= 56 && currentIndex <= 63) ||
+                (activePiece.side === 'Black' && currentIndex >= 0 && currentIndex <= 7))
+            ) {
+              // Заменяем пешку на короля соответствующего цвета
+              return activePiece.side === 'White' ? kingFigure.white : kingFigure.black;
+            }
             return activePiece.pieceJSX; // Переместили выбранную фигуру
           }
 
@@ -387,7 +474,6 @@ export const ChessCage = ({ chessBoardRef }) => {
               typeof arrayOfPieces[currentIndex].props?.side === 'string' &&
               arrayOfPieces[currentIndex].props?.side !== activePiece.side
             ) {
-              isDeletedFigure = true;
               return <div data={`Empty`} className="empty_square" />; // Удалили фигуру
             } else {
               return arrayOfPieces[currentIndex]; // Зачем то меняем местами
@@ -397,24 +483,39 @@ export const ChessCage = ({ chessBoardRef }) => {
           return piece; // изменений не произошло
         });
 
+        const checkSide = isKingInCheck(changedArray);
+
         if (preventCheck(activePiece, changedArray).length === 0) {
           setArrayOfPieces(changedArray);
+
+          if (checkSide) {
+            const mate = isCheckmate(changedArray, checkSide.side);
+            if (mate.status) {
+              dispatch(setGameState({ status: true, side: mate.side }));
+            } else {
+              dispatch(
+                changeCheckState({ state: true, side: checkSide.side, index: checkSide.index }),
+              );
+            }
+          } else {
+            dispatch(changeCheckState({ state: false, side: undefined, index: undefined }));
+          } //проверка на шах
+
           if (arrayOfPieces[currentIndex].props.data !== 'Empty') {
             dispatch(addDeletedFigures(arrayOfPieces[currentIndex].props));
-          }
-          dispatch(changeCheckState({ state: false, side: undefined }));
+          } // добавить удаленную фигуру
+
           if (turn === 'White') {
             setTurn('Black');
             dispatch(changeTurn('Black'));
           } else {
             setTurn('White');
             dispatch(changeTurn('White'));
-          }
-        } else {
-          dispatch(changeCheckState({ state: true, side: activePiece.side }));
+          } // изменить информацию дополнительную информацию
         }
       }
     }
+
     closePiece();
     setIndexToTranslate(null);
   };
@@ -428,15 +529,28 @@ export const ChessCage = ({ chessBoardRef }) => {
     }
   };
 
+  const retryGame = () => {
+    setArrayOfPieces(startFieldArray);
+    dispatch(clearGame());
+    setTestFlag(false);
+  };
+
   return (
     <>
+      {gameEnded.status ? (
+        <ModalComponent
+          closeModal={() => retryGame()}
+          onRetry={() => retryGame()}
+          message={`Победа ${gameEnded.side === 'White' ? 'Черных' : 'Белых'}`}
+        />
+      ) : null}
       {arrayOfPieces.map((cage, index) => (
         <div
           key={index}
           draggable={false}
           className={`chess_cage  ${checkColorCage(index)} ${
             activeFieldsToMove.includes(index) ? 'active_field' : null
-          }`}>
+          } ${checkState.index === index ? 'check' : null}    `}>
           {/* <div style={{ color: 'pink', pointerEvents: 'none' }}>{index}</div> */}
           <ChessPiece
             hideField={hideField}

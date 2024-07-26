@@ -1,13 +1,15 @@
 import { createSlice } from '@reduxjs/toolkit';
 
+const initialState = {
+  turn: 'White',
+  deletedFigures: [],
+  checkState: { state: false, side: undefined, index: undefined },
+  gameEnded: { status: false, side: undefined },
+};
+
 export const gameSlice = createSlice({
   name: 'game',
-  initialState: {
-    turn: 'White',
-    deletedFigures: [],
-    checkState: { state: false, side: undefined },
-    gameEnded: false,
-  },
+  initialState,
   reducers: {
     changeTurn: (state, actions) => {
       state.turn = actions.payload;
@@ -21,9 +23,11 @@ export const gameSlice = createSlice({
     setGameState: (state, actions) => {
       state.gameEnded = actions.payload;
     },
+    clearGame: () => initialState,
   },
 });
 
-export const { changeTurn, addDeletedFigures, changeCheckState, setGameState } = gameSlice.actions;
+export const { changeTurn, addDeletedFigures, changeCheckState, setGameState, clearGame } =
+  gameSlice.actions;
 
 export default gameSlice.reducer;
